@@ -1,9 +1,8 @@
 <script setup>
-import TextInput from './components/TextInput.vue'
 </script>
 
 <template>
-    <TextInput/>
+    <RouterView />
 </template>
 
 <style scoped>
