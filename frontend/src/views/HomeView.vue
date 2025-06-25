@@ -3,9 +3,11 @@
         <input type="text" class="d-block w-100 text-center">
         <table class="table">
             <thead>
-                <th>1</th>
-                <th>2</th>
-                <th>3</th>
+                <tr>
+                    <th>1</th>
+                    <th>2</th>
+                    <th>3</th>
+                </tr>
             </thead>
             <tbody>
                 <tr>
