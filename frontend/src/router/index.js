@@ -7,28 +7,29 @@ import EditAccountsView from '@/views/admin/EditAccountsView.vue'
 import EditItemsView from '@/views/admin/EditItemsView.vue'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView,
-    },
-    {
-      path: '/account',
-      name: 'account',
-      component: AccountView,
-    },
-    {
-      path: '/admin',
-      name: 'admin',
-      component: AdminView,
-      children: [
-        { path: 'edit-accounts', component: EditAccountsView },
-        { path: 'edit-items', component: EditItemsView }
-      ]
-    }
-  ]
+    history: createWebHistory(import.meta.env.BASE_URL),
+    routes: [
+        {
+            path: '/',
+            name: 'home',
+            component: HomeView,
+        },
+        {
+            path: '/account/:id',
+            name: 'account',
+            component: AccountView,
+            props: true
+        },
+        {
+            path: '/admin',
+            name: 'admin',
+            component: AdminView,
+            children: [
+                { path: 'edit-accounts', component: EditAccountsView },
+                { path: 'edit-items', component: EditItemsView }
+            ]
+        }
+    ]
 })
 
 export default router
