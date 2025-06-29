@@ -1,77 +1,16 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
+from models import db
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:testPassword@localhost:5432/prybar'
+db.init_app(app)
+
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:testPassword@localhost:5432/prybar'
-db = SQLAlchemy(app)
+from models import *
 
-class Account(db.Model):
-    __tablename__ = 'account'
-    id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False)
-    name = db.Column(db.Text, nullable=False)
-    personal_id = db.Column(db.Text, nullable=False)
 
-class Category(db.Model):
-    __tablename__ = 'item_category'
-    id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False)
-    name = db.Column(db.Text, nullable=False)
-
-class Settings(db.Model):
-    __tablename__ = 'settings'
-    id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False)
-    key = db.Column(db.Text, nullable=False, unique=True)
-    value = db.Column(db.Text, nullable=False)
-
-class Sale(db.Model):
-    __tablename__ = 'sale'
-    id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False)
-    account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
-    account = db.relationship('Account')
-    void = db.Column(db.Boolean, nullable=False, default=False)
-    items = db.relationship('SalesItem')
-
-    @property
-    def total(self):
-        return sum(item.sale_price * item.quantity for item in self.items)
-
-class SalesItem(db.Model):
-    __tablename__ = 'sales_item'
-    sale_id = db.Column( db.Integer, db.ForeignKey('sale.id'), primary_key=True)
-    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    quantity = db.Column(db.Integer, nullable=False, default=1)
-    sale_price = db.Column(db.Numeric(60, 2), nullable=False)
-
-class Item(db.Model):
-    __tablename__ = 'item'
-    id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False)
-    name = db.Column(db.Text, nullable=False)
-    barcode = db.Column(db.Text, nullable=False)
-    category_id = db.Column('category', db.Integer, db.ForeignKey('item_category.id'), nullable=False)
-    category = db.relationship('Category')
-
-class Price(db.Model):
-    __tablename__ = 'price'
-    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False)
-    price = db.Column(db.Numeric(60, 2), nullable=False)
-    external = db.Column(db.Numeric(60, 2))
-    internal = db.Column(db.Numeric(60, 2))
-
-class Barcode(db.Model):
-    __tablename__ = 'barcode_lookup'
-    barcode = db.Column(db.Text, nullable=False, primary_key=True)
-    id = db.Column(db.Integer, nullable=False)
-    source_table = db.Column(db.Text, nullable=False) 
-
-# Test endpoint to verify the API is working
 @app.route('/api')
 def index():
     print("API endpoint accessed")
@@ -104,7 +43,7 @@ def get_items():
 # Get all categories
 @app.route('/api/categories', methods=['GET'])
 def get_categories():
-    categories = Category.query.all()
+    categories = ItemCategory.query.all()
     return jsonify([{
         'id': category.id, 
         'created_at': category.created_at, 
@@ -160,7 +99,7 @@ def get_barcode(barcode = None):
     if not barcode:
         return jsonify({'error': 'Barcode parameter is required'}), 400
     
-    barcode_lookup = Barcode.query.filter_by(barcode=barcode).all()
+    barcode_lookup = BarcodeLookup.query.filter_by(barcode=barcode).all()
     if len(barcode_lookup) > 1:
         return jsonify({'error': 'Multiple entries found for this barcode'}), 400
     elif not barcode_lookup:
