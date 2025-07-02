@@ -3,7 +3,7 @@ from flask_cors import CORS
 from models import db
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:testPassword@localhost:5432/prybar'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:testPassword@localhost:5432/prybar' # Big brain att sätta connection string i inte plaintext
 db.init_app(app)
 
 CORS(app)
