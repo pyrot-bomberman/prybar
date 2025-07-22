@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import CreateAccount from '@/views/_CreateAccount.vue' // Testing View
 import HomeView from '@/views/HomeView.vue'
-import AccountView from '@/views/AccountView.vue'
 import AdminView from '@/views/AdminView.vue'
 import EditAccountsView from '@/views/admin/EditAccountsView.vue'
 import EditItemsView from '@/views/admin/EditItemsView.vue'
@@ -13,12 +12,6 @@ const router = createRouter({
             path: '/',
             name: 'home',
             component: HomeView,
-        },
-        {
-            path: '/account/:id',
-            name: 'account',
-            component: AccountView,
-            props: true
         },
         {
             path: '/admin',

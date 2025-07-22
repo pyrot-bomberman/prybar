@@ -3,12 +3,17 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import api from '@/api';
 import { useRouter } from 'vue-router'
 import RecentPurchases from '@/components/RecentPurchases.vue';
-import DisplayItem from '@/components/DisplayItem.vue';
+import DisplayItems from '@/components/DisplayItems.vue';
+import DisplayAccount from '@/components/DisplayAccount.vue';
+import Error from '@/components/Error.vue';
 
 const router = useRouter();
 const sales = ref([]);
 const inputData = ref('');
-const currentItem = ref(null);
+const currentItems = ref([]);
+const currentAccount = ref(null);
+const keywords = ['admin', 'avbryt', 'exit'];
+const e = ref(false);
 
 onMounted(async () => {
     window.addEventListener('keydown', handleEscape)
@@ -30,34 +35,65 @@ onBeforeUnmount(() => {
 
 function handleEscape(event) {
     if (event.key === 'Escape') {
-        currentItem.value = null;
+        console.log('Escape pressed, resetting state.');
+        resetState();
+    }
+}
+
+function resetState() {
+    currentItems.value = [];
+    currentAccount.value = null;
+    inputData.value = '';
+}
+
+async function lookupBarcode(barcode) {
+    try {
+        console.log('Fetching barcode lookup...');
+        const response = await api.get('/get-barcode', { params: { barcode: barcode } });
+        const barcodeLookup = response.data;
+        console.log('Barcode lookup result:', barcodeLookup);
+        return barcodeLookup;
+    } catch (error) {
+        console.warn('Error fetching barcode lookup:', error);
+        return null;
     }
 }
 
 async function handleInput() {
     console.log('Input: ' + inputData.value);
-    try {
-        console.log('Fetching barcode lookup...');
-        const response = await api.get('/get-barcode', { params: { barcode: inputData.value } });
-        const barcodeLookup = response.data;
-        console.log('Barcode lookup result:', barcodeLookup);
+    const input = inputData.value.toLowerCase()
+    inputData.value = '';
 
-        if (barcodeLookup) {
-            if (barcodeLookup.type === 'item') {
-                currentItem.value = barcodeLookup;
-            } else if (barcodeLookup.type === 'account') {
-                router.push({ path: `/account/${barcodeLookup.id}` });
+    if (keywords.includes(input)) {
+        if (input === 'admin') {
+            router.push({ path: '/admin' });
+        } else if (input === 'exit' || input === 'avbryt') {
+            currentItem.value = null;
+        }
+        return;
+    }
+    else {
+        const result = await lookupBarcode(input);
+        if (!result) {
+            e.value = true;
+            setTimeout(() => {
+                e.value = false;
+            }, 1000);
+            return;
+        }
+        if (result.type === 'item') {
+            currentItems.value.push(result);
+        } else if (result.type === 'account') {
+            if (currentItems.value) {
+                // Strecka grejen/grejerna
             } else {
-                console.error('Unknown type:', barcodeLookup.type);
+                currentAccount.value = result;
             }
         } else {
-            console.warn('No barcode lookup result found.');
+            console.error('Unknown type:', result.type);
         }
-
-    } catch (error) {
-        console.error('Error fetching barcode lookup:', error);
+        
     }
-    inputData.value = '';
 }
 
 </script>
@@ -66,8 +102,12 @@ async function handleInput() {
     <main class="container-md mx-auto mt-5">
         <input type="text" class="d-block w-100 text-center" v-model="inputData" @keyup.enter="handleInput" autofocus
             placeholder="---> Sikta här <---" />
-        <DisplayItem v-if="currentItem" :item="currentItem" />
-        <RecentPurchases v-show="!currentItem" :mode="all" />
+        <div v-if="!e">
+            <DisplayItems v-if="currentItems.length > 0" :items="currentItems" />
+            <DisplayAccount v-if="currentAccount" :account="currentAccount" />
+            <RecentPurchases v-show="currentItems.length < 1" :mode="currentAccount ? 'account' : 'all'" />
+        </div>
+        <Error v-if="e">testset</Error>
     </main>
 
     <router-link to="/admin" class="position-fixed bottom-0 end-0 btn btn-secondary">
