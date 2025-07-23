@@ -25,13 +25,13 @@ class Sale(db.Model):
     account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     account = db.relationship('Account')
     void = db.Column(db.Boolean, nullable=False, default=False)
-    items = db.relationship('SalesItem')
+    items = db.relationship('SaleItem')
 
     @property
     def total(self):
         return sum(item.sale_price * item.quantity for item in self.items)
 
-class SalesItem(db.Model):
+class SaleItem(db.Model):
     sale_id = db.Column( db.Integer, db.ForeignKey('sale.id'), primary_key=True)
     item_id = db.Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
     quantity = db.Column(db.Integer, nullable=False, default=1)

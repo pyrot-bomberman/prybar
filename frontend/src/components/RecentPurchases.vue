@@ -16,29 +16,28 @@ const props = defineProps({
 const sales = ref([]);
 
 onMounted(async () => {
-    if (props.mode == 'all') {
-        try {
+    try {
+        if (props.mode == 'all') {
             sales.value = await getLatestSales();
-        } catch (error) {
-            console.error('Error fetching sales:', error);
+        } else if (props.mode == 'account' && props.id) {
+            sales.value = await getLatestSales(props.id);
         }
-    } else if (props.mode == 'account' && props.id) {
-        try {
-            sales.value = await getLatestAccountSales(props.id);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
+    } catch (error) {
+        console.error('Error fetching sales:', error);
     }
 });
 
 defineExpose({
-    getLatestSales,
-    getLatestAccountSales
-})
+    getLatestSales
+});
 
-async function getLatestSales() {
+async function getLatestSales(accountId) {
     console.log('Fetching sales...');
-    const response = await api.get('/get-latest-sale', { params: { count: 20 } });
+    if (accountId) {
+        const response = await api.get('/get-latest-sale', { params: { count: 20, account: accountId } });
+    } else {
+        const response = await api.get('/get-latest-sale', { params: { count: 20 } });
+    }
     var latestSales = response.data;
 
     console.log('Status:', response.status);
@@ -47,23 +46,6 @@ async function getLatestSales() {
         ...sale,
         text: getSaleText(sale)
     }));
-
-    sales.value = latestSales;
-    return latestSales;
-}
-
-async function getLatestAccountSales(accountId) {
-    console.log('Fetching sales...');
-    const response = await api.get('/get-latest-sale', { params: { count: 20, account: accountId } });
-    var latestSales = response.data;
-
-    console.log('Status:', response.status);
-
-    latestSales = latestSales.map(sale => ({
-        ...sale,
-        text: getSaleText(sale)
-    }));
-    sales.value = latestSales;
     return latestSales;
 }
 

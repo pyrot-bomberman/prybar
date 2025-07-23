@@ -18,13 +18,14 @@ const e = ref(false);
 
 onMounted(async () => {
     window.addEventListener('keydown', handleEscape)
+
+    // Fetch sales
     try {
         console.log('Fetching sales...');
         const response = await api.get('/get-latest-sale', { params: { count: 20 } });
         sales.value = response.data;
 
         console.log('Status:', response.status);
-        console.log('Sales fetched:', sales.value);
     } catch (error) {
         console.error('Error fetching sales:', error);
     }
@@ -36,7 +37,6 @@ onBeforeUnmount(() => {
 
 function handleEscape(event) {
     if (event.key === 'Escape') {
-        console.log('Escape pressed, resetting state.');
         resetState();
     }
 }
@@ -71,7 +71,7 @@ async function handleInput() {
         if (input === 'admin') {
             router.push({ path: '/admin' });
         } else if (input === 'exit' || input === 'avbryt') {
-            currentItem.value = null;
+            resetState();
         }
         return;
     }
@@ -85,13 +85,12 @@ async function handleInput() {
             return;
         }
         if (result.type === 'item') {
-            //if the item already exists in currentItems, add 1 to the quantity
             const existingItem = currentItems.value.find(item => item.id === result.id);
             if (existingItem) {
                 existingItem.quantity += 1;
                 return;
             } else {
-                result.quantity = 1; // Set initial quantity
+                result.quantity = 1;
                 currentItems.value.push(result);
             }
         } else if (result.type === 'account') {
