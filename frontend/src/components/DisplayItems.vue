@@ -11,7 +11,7 @@ const props = defineProps({
 
 <template>
     <main class="d-flex flex-column align-items-center text-center">
-        <div v-if="props.items.length < 2">
+        <div v-if="props.items.length < 2 && props.items[0].quantity < 2">
             <h1>{{ props.items[0].name }}</h1>
             <h2>{{ props.items[0].price_external }} kr</h2>
             <h4>{{ props.items[0].price_internal }} kr</h4>
@@ -28,8 +28,8 @@ const props = defineProps({
                 </thead>
                 <tbody>
                     <tr v-for="(item, index) in props.items" :key="index">
-                        <td>{{ index + 1 }}</td>
-                        <td>{{ item.name }}</td>
+                        <td>{{ item.quantity }}x</td>
+                        <td>{{ item.name }}x</td>
                         <td>{{ item.price_external }}</td>
                         <td>{{ item.price_internal }}</td>
                     </tr>
@@ -37,8 +37,8 @@ const props = defineProps({
                 <tfoot>
                     <tr>
                         <td colspan="2">Total</td>
-                        <td>{{ props.items.reduce((sum, item) => sum + item.price_external, 0) }} kr</td>
-                        <td>{{ props.items.reduce((sum, item) => sum + item.price_internal, 0) }} kr</td>
+                        <td>{{ props.items.reduce((sum, item) => sum + item.price_external * item.quantity, 0) }} kr</td>
+                        <td>{{ props.items.reduce((sum, item) => sum + item.price_internal * item.quantity, 0) }} kr</td>
 
                     </tr>
                 </tfoot>

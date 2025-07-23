@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from models import db
+from decimal import Decimal
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:testPassword@localhost:5432/prybar' # Big brain att sätta connection string i inte plaintext
@@ -183,6 +184,55 @@ def get_item(item_id = None):
         'category': item.category.name if item.category else None,
         'price_internal': price_internal,
         'price_external': price_external
+    })
+
+@app.route('/api/add-sale', methods=['POST'])
+def add_sale():
+    data = request.get_json()
+    if not data or 'account_id' not in data or 'items' not in data:
+        return jsonify({'error': 'Invalid data'}), 400
+    
+    account_id = data['account_id']
+    items = data['items']
+    
+    account = Account.query.get(account_id)
+    if not account:
+        return jsonify({'error': 'Account not found'}), 404
+    
+    sale = Sale(account=account)
+    db.session.add(sale)
+    
+    for item_data in items:
+        item_id = item_data['item_id']
+        quantity = item_data['quantity']
+        item = Item.query.get(item_id)
+        if not item:
+            return jsonify({'error': f'Item with ID {item_id} not found'}), 404
+        
+        price_internal_markup = Settings.query.filter_by(key='abs_markup_internal').first()
+        price = Price.query.filter_by(item_id=item.id).order_by(Price.created_at.desc()).first()
+        if price:
+            sale_price = price.internal if price.internal is not None else price.price + Decimal(price_internal_markup.value if price_internal_markup else 0.0)
+        
+        sales_item = SalesItem(sale=sale, item=item, quantity=quantity, sale_price=sale_price)
+        db.session.add(sales_item)
+            
+    # TODO: Also add to transactions table
+    db.session.commit()
+    
+    return jsonify({
+        'id': sale.id,
+        'created_at': sale.created_at,
+        'account_id': sale.account_id,
+        'account': sale.account.name,
+        'void': sale.void,
+        'items': [{
+            'item_id': item.item_id,
+            'quantity': item.quantity,
+            'sale_price': str(item.sale_price),
+            'name': Item.query.get(item.item_id).name if item.item_id else None
+        } for item in sale.items],
+        'total': sale.total
     })
 
 if __name__ == '__main__':

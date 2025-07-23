@@ -63,6 +63,7 @@ async function handleInput() {
     console.log('Input: ' + inputData.value);
     const input = inputData.value.toLowerCase()
     inputData.value = '';
+    console.log(currentItems.value);
 
     if (keywords.includes(input)) {
         if (input === 'admin') {
@@ -82,17 +83,38 @@ async function handleInput() {
             return;
         }
         if (result.type === 'item') {
-            currentItems.value.push(result);
+            //if the item already exists in currentItems, add 1 to the quantity
+            const existingItem = currentItems.value.find(item => item.id === result.id);
+            if (existingItem) {
+                existingItem.quantity += 1;
+                return;
+            } else {
+                result.quantity = 1; // Set initial quantity
+                currentItems.value.push(result);
+            }
         } else if (result.type === 'account') {
             if (currentItems.value) {
-                // Strecka grejen/grejerna
+                try {
+                    console.log('Adding sale...');
+                    const items = currentItems.value.map(item => ({
+                        item_id: item.id,
+                        quantity: item.quantity
+                    }));
+                    const saleResponse = await api.post('/add-sale', { 
+                        account_id: result.id, 
+                        items: items 
+                    });
+                    console.log('Sale added:', saleResponse.data);
+                    resetState();
+                } catch (error) {
+                    console.error('Error adding sale:', error);
+                }
             } else {
                 currentAccount.value = result;
             }
         } else {
             console.error('Unknown type:', result.type);
         }
-        
     }
 }
 

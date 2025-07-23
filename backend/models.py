@@ -4,24 +4,24 @@ db = SQLAlchemy()
 
 class Account(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     name = db.Column(db.Text, nullable=False)
     personal_id = db.Column(db.Text, nullable=False)
 
 class ItemCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     name = db.Column(db.Text, nullable=False)
 
 class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     key = db.Column(db.Text, nullable=False, unique=True)
     value = db.Column(db.Text, nullable=False)
 
 class Sale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     account = db.relationship('Account')
     void = db.Column(db.Boolean, nullable=False, default=False)
@@ -36,10 +36,12 @@ class SalesItem(db.Model):
     item_id = db.Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
     quantity = db.Column(db.Integer, nullable=False, default=1)
     sale_price = db.Column(db.Numeric(60, 2), nullable=False)
+    sale = db.relationship('Sale', back_populates='items')
+    item = db.relationship('Item')
 
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     name = db.Column(db.Text, nullable=False)
     barcode = db.Column(db.Text, nullable=False)
     category_id = db.Column('category', db.Integer, db.ForeignKey('item_category.id'), nullable=False)
@@ -47,7 +49,7 @@ class Item(db.Model):
 
 class Price(db.Model):
     item_id = db.Column(db.Integer, db.ForeignKey('item.id'), primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     price = db.Column(db.Numeric(60, 2), nullable=False)
     external = db.Column(db.Numeric(60, 2))
     internal = db.Column(db.Numeric(60, 2))
