@@ -7,6 +7,7 @@ import DisplayItems from '@/components/DisplayItems.vue';
 import DisplayAccount from '@/components/DisplayAccount.vue';
 import Error from '@/components/Error.vue';
 
+const recentPurchases = ref(null);
 const router = useRouter();
 const sales = ref([]);
 const inputData = ref('');
@@ -44,6 +45,7 @@ function resetState() {
     currentItems.value = [];
     currentAccount.value = null;
     inputData.value = '';
+    recentPurchases.value?.getLatestSales();
 }
 
 async function lookupBarcode(barcode) {
@@ -93,7 +95,7 @@ async function handleInput() {
                 currentItems.value.push(result);
             }
         } else if (result.type === 'account') {
-            if (currentItems.value) {
+            if (currentItems.value.length > 0) {
                 try {
                     console.log('Adding sale...');
                     const items = currentItems.value.map(item => ({
@@ -111,6 +113,7 @@ async function handleInput() {
                 }
             } else {
                 currentAccount.value = result;
+                recentPurchases.value?.getLatestAccountSales(result.id);
             }
         } else {
             console.error('Unknown type:', result.type);
@@ -127,9 +130,9 @@ async function handleInput() {
         <div v-if="!e">
             <DisplayItems v-if="currentItems.length > 0" :items="currentItems" />
             <DisplayAccount v-if="currentAccount" :account="currentAccount" />
-            <RecentPurchases v-show="currentItems.length < 1" :mode="currentAccount ? 'account' : 'all'" />
+            <RecentPurchases v-show="currentItems.length < 1" :mode="currentAccount ? 'account' : 'all'" ref="recentPurchases" />
         </div>
-        <Error v-if="e">testset</Error>
+        <Error v-if="e"></Error>
     </main>
 
     <router-link to="/admin" class="position-fixed bottom-0 end-0 btn btn-secondary">

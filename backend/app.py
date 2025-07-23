@@ -201,6 +201,8 @@ def add_sale():
     
     sale = Sale(account=account)
     db.session.add(sale)
+
+    total = 0
     
     for item_data in items:
         item_id = item_data['item_id']
@@ -214,10 +216,11 @@ def add_sale():
         if price:
             sale_price = price.internal if price.internal is not None else price.price + Decimal(price_internal_markup.value if price_internal_markup else 0.0)
         
+        total += sale_price * quantity
         sales_item = SalesItem(sale=sale, item=item, quantity=quantity, sale_price=sale_price)
         db.session.add(sales_item)
             
-    # TODO: Also add to transactions table
+    db.session.add(Transaction(account=account, amount=total, sale=sale))
     db.session.commit()
     
     return jsonify({

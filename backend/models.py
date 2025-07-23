@@ -58,3 +58,12 @@ class BarcodeLookup(db.Model):
     barcode = db.Column(db.Text, nullable=False, primary_key=True)
     id = db.Column(db.Integer, nullable=False)
     source_table = db.Column(db.Text, nullable=False) 
+
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    sale_id = db.Column(db.Integer, db.ForeignKey('sale.id'), nullable=True)
+    account = db.relationship('Account')
+    sale = db.relationship('Sale', uselist=False, backref='transaction')
+    amount = db.Column(db.Numeric(60, 2), nullable=False)
