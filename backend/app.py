@@ -140,6 +140,24 @@ def get_account(account_id = None):
         'personal_id': account.personal_id
     })
 
+@app.route('/api/get-account-debt', methods=['GET'])
+def get_account_debt(account_id = None):
+    if not account_id:
+        account_id = request.args.get('account_id', default=None, type=int)
+    if not account_id:
+        return jsonify({'error': 'Account ID parameter is required'}), 400
+    
+    account_debt = AccountDebt.query.filter_by(account_id=account_id).first()
+    if not account_debt:
+        account_debt = AccountDebt(account_id=account_id, total_sale=0.0, total_deposit=0.0, total_debt=0.0)
+    
+    return jsonify({
+        'account_id': account_debt.account_id,
+        'total_sale': str(account_debt.total_sale),
+        'total_deposit': str(account_debt.total_deposit),
+        'total_debt': str(account_debt.total_debt)
+    })
+
 @app.route('/api/get-item', methods=['GET'])
 def get_item(item_id = None):
     if not item_id:

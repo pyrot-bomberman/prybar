@@ -9,7 +9,6 @@ import Error from '@/components/Error.vue';
 
 const recentPurchases = ref(null);
 const router = useRouter();
-const sales = ref([]);
 const inputData = ref('');
 const currentItems = ref([]);
 const currentAccount = ref(null);
@@ -18,17 +17,6 @@ const e = ref(false);
 
 onMounted(async () => {
     window.addEventListener('keydown', handleEscape)
-
-    // Fetch sales
-    try {
-        console.log('Fetching sales...');
-        const response = await api.get('/get-latest-sale', { params: { count: 20 } });
-        sales.value = response.data;
-
-        console.log('Status:', response.status);
-    } catch (error) {
-        console.error('Error fetching sales:', error);
-    }
 });
 
 onBeforeUnmount(() => {
@@ -45,7 +33,7 @@ function resetState() {
     currentItems.value = [];
     currentAccount.value = null;
     inputData.value = '';
-    recentPurchases.value?.getLatestSales();
+    recentPurchases.value?.updateSales();
 }
 
 async function lookupBarcode(barcode) {
@@ -90,6 +78,7 @@ async function handleInput() {
                 existingItem.quantity += 1;
                 return;
             } else {
+                currentAccount.value = null;
                 result.quantity = 1;
                 currentItems.value.push(result);
             }
@@ -112,7 +101,6 @@ async function handleInput() {
                 }
             } else {
                 currentAccount.value = result;
-                recentPurchases.value?.getLatestAccountSales(result.id);
             }
         } else {
             console.error('Unknown type:', result.type);
@@ -129,7 +117,7 @@ async function handleInput() {
         <div v-if="!e">
             <DisplayItems v-if="currentItems.length > 0" :items="currentItems" />
             <DisplayAccount v-if="currentAccount" :account="currentAccount" />
-            <RecentPurchases v-show="currentItems.length < 1" :mode="currentAccount ? 'account' : 'all'" ref="recentPurchases" />
+            <RecentPurchases v-show="currentItems.length < 1" :mode="currentAccount ? 'account' : 'all'" :id="currentAccount ? currentAccount.id : null" ref="recentPurchases" />
         </div>
         <Error v-if="e"></Error>
     </main>

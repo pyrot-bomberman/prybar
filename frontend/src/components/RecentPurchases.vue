@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, defineExpose, watch } from 'vue';
+import { ref, defineExpose, watch } from 'vue';
 import api from '@/api';
 
 const props = defineProps({
@@ -8,45 +8,55 @@ const props = defineProps({
         default: 'all'
     },
     id: {
-        type: String,
+        type: Number,
         default: null
     }
 });
 
 const sales = ref([]);
 
-onMounted(async () => {
-    try {
-        if (props.mode == 'all') {
-            sales.value = await getLatestSales();
-        } else if (props.mode == 'account' && props.id) {
-            sales.value = await getLatestSales(props.id);
-        }
-    } catch (error) {
-        console.error('Error fetching sales:', error);
-    }
-});
+watch(props, (newProps) => {
+    console.log('Props updated to:', newProps);
+    updateSales();
+}, { immediate: true });
 
 defineExpose({
-    getLatestSales
+    updateSales
 });
 
-async function getLatestSales(accountId) {
-    console.log('Fetching sales...');
-    if (accountId) {
-        const response = await api.get('/get-latest-sale', { params: { count: 20, account: accountId } });
-    } else {
-        const response = await api.get('/get-latest-sale', { params: { count: 20 } });
+async function updateSales() {
+    if (props.mode == 'all') {
+        sales.value = await getLatestSales();
+    } else if (props.mode == 'account' && props.id) {
+        console.log('Fetching sales for account ID:', props);
+        sales.value = await getLatestSales(props.id);
     }
-    var latestSales = response.data;
+}
 
-    console.log('Status:', response.status);
-
-    latestSales = latestSales.map(sale => ({
-        ...sale,
-        text: getSaleText(sale)
-    }));
-    return latestSales;
+async function getLatestSales(accountId) {
+    try {
+        console.log('Fetching sales...');
+    
+        let response;
+        if (accountId) {
+            response = await api.get('/get-latest-sale', { params: { count: 20, account: accountId } });
+        } else {
+            response = await api.get('/get-latest-sale', { params: { count: 20 } });
+        }
+    
+        console.log('Get sale status:', response.status);
+    
+        let latestSales = response.data;
+        latestSales = latestSales.map(sale => ({
+            ...sale,
+            text: getSaleText(sale)
+        }));
+        return latestSales;
+    }
+    catch (error) {
+        console.error('Error fetching sales:', error);
+        return [];
+    }
 }
 
 function getSaleText(sale) {

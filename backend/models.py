@@ -7,7 +7,7 @@ class Account(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     name = db.Column(db.Text, nullable=False)
     personal_id = db.Column(db.Text, nullable=False)
-
+    
 class ItemCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
@@ -54,11 +54,6 @@ class Price(db.Model):
     external = db.Column(db.Numeric(60, 2))
     internal = db.Column(db.Numeric(60, 2))
 
-class BarcodeLookup(db.Model):
-    barcode = db.Column(db.Text, nullable=False, primary_key=True)
-    id = db.Column(db.Integer, nullable=False)
-    source_table = db.Column(db.Text, nullable=False) 
-
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
@@ -67,3 +62,15 @@ class Transaction(db.Model):
     account = db.relationship('Account')
     sale = db.relationship('Sale', uselist=False, backref='transaction')
     amount = db.Column(db.Numeric(60, 2), nullable=False)
+
+class BarcodeLookup(db.Model):
+    barcode = db.Column(db.Text, nullable=False, primary_key=True)
+    id = db.Column(db.Integer, nullable=False)
+    source_table = db.Column(db.Text, nullable=False) 
+
+class AccountDebt(db.Model):
+    account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False, primary_key=True)
+    account = db.relationship('Account')
+    total_sale = db.Column(db.Numeric(60, 2), nullable=False, default=0.0)
+    total_deposit = db.Column(db.Numeric(60, 2), nullable=False, default=0.0)
+    total_debt = db.Column(db.Numeric(60, 2), nullable=False, default=0.0)
