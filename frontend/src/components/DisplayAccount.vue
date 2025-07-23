@@ -1,4 +1,7 @@
 <script setup>
+import { ref, watch } from 'vue';
+import api from '@/api';
+
 const props = defineProps({
     account: {
         type: Object,
@@ -6,11 +9,10 @@ const props = defineProps({
     }
 });
 
-import { ref, onMounted, watch } from 'vue';
-import api from '@/api';
-
 const debt = ref("");
 
+// Watch for changes in the account prop to fetch the debt for new accounts
+// This could be implemented on the backend to return the debt when fetching account details instead
 watch(props, async (newProps) => {
     if (newProps.account.id) {
         try {

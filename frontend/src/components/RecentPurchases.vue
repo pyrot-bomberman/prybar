@@ -15,6 +15,7 @@ const props = defineProps({
 
 const sales = ref([]);
 
+// Fetch sales when component is mounted or props change
 watch(props, (newProps) => {
     console.log('Props updated to:', newProps);
     updateSales();
@@ -33,7 +34,9 @@ async function updateSales() {
     }
 }
 
-async function getLatestSales(accountId) {
+// Fetch the latest sales from the API
+// If accountId is provided, fetch sales for that account
+async function getLatestSales(accountId = null) {
     try {
         console.log('Fetching sales...');
     
@@ -59,6 +62,7 @@ async function getLatestSales(accountId) {
     }
 }
 
+// This function is used to create a readable text representation of the sale
 function getSaleText(sale) {
     if (!Array.isArray(sale.items)) return '';
     const itemTexts = sale.items.map(item => `${item.quantity} x ${item.name}`);

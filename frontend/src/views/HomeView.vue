@@ -7,28 +7,31 @@ import DisplayItems from '@/components/DisplayItems.vue';
 import DisplayAccount from '@/components/DisplayAccount.vue';
 import Error from '@/components/Error.vue';
 
-const recentPurchases = ref(null);
 const router = useRouter();
+const keywords = ['admin', 'avbryt', 'exit'];
+
+const recentPurchases = ref(null);
 const inputData = ref('');
 const currentItems = ref([]);
 const currentAccount = ref(null);
-const keywords = ['admin', 'avbryt', 'exit'];
 const e = ref(false);
 
-onMounted(async () => {
-    window.addEventListener('keydown', handleEscape)
+// Add event listeners for key presses
+onMounted(() => {
+    window.addEventListener('keydown', handleKeypress)
 });
 
 onBeforeUnmount(() => {
-    window.removeEventListener('keydown', handleEscape)
+    window.removeEventListener('keydown', handleKeypress)
 })
 
-function handleEscape(event) {
+function handleKeypress(event) {
     if (event.key === 'Escape') {
         resetState();
     }
 }
 
+// Reset the state of the view
 function resetState() {
     currentItems.value = [];
     currentAccount.value = null;
@@ -49,12 +52,33 @@ async function lookupBarcode(barcode) {
     }
 }
 
+async function addSale(id, items) {
+    try {
+        console.log('Adding sale...');
+        items = items.map(item => ({
+            item_id: item.id,
+            quantity: item.quantity
+        }));
+        const saleResponse = await api.post('/add-sale', {
+            account_id: id,
+            items: items
+        });
+        console.log('Sale added:', saleResponse.data);
+        resetState();
+        return saleResponse.data;
+    } catch (error) {
+        console.error('Error adding sale:', error);
+        return null;
+    }
+}
+
 async function handleInput() {
     console.log('Input: ' + inputData.value);
     const input = inputData.value.toLowerCase()
     inputData.value = '';
     console.log(currentItems.value);
 
+    // Check if the input is a keyword
     if (keywords.includes(input)) {
         if (input === 'admin') {
             router.push({ path: '/admin' });
@@ -64,6 +88,7 @@ async function handleInput() {
         return;
     }
     else {
+        // Find what the barcode is and if it exists
         const result = await lookupBarcode(input);
         if (!result) {
             e.value = true;
@@ -72,6 +97,7 @@ async function handleInput() {
             }, 1000);
             return;
         }
+        // If it is an item, add it to the current items
         if (result.type === 'item') {
             const existingItem = currentItems.value.find(item => item.id === result.id);
             if (existingItem) {
@@ -82,23 +108,12 @@ async function handleInput() {
                 result.quantity = 1;
                 currentItems.value.push(result);
             }
-        } else if (result.type === 'account') {
+        } 
+        // If products are selected, add the sale to the account
+        // Else display the account information
+        else if (result.type === 'account') {
             if (currentItems.value.length > 0) {
-                try {
-                    console.log('Adding sale...');
-                    const items = currentItems.value.map(item => ({
-                        item_id: item.id,
-                        quantity: item.quantity
-                    }));
-                    const saleResponse = await api.post('/add-sale', { 
-                        account_id: result.id, 
-                        items: items 
-                    });
-                    console.log('Sale added:', saleResponse.data);
-                    resetState();
-                } catch (error) {
-                    console.error('Error adding sale:', error);
-                }
+                addSale(result.id, currentItems.value);
             } else {
                 currentAccount.value = result;
             }
@@ -107,7 +122,6 @@ async function handleInput() {
         }
     }
 }
-
 </script>
 
 <template>
@@ -117,7 +131,8 @@ async function handleInput() {
         <div v-if="!e">
             <DisplayItems v-if="currentItems.length > 0" :items="currentItems" />
             <DisplayAccount v-if="currentAccount" :account="currentAccount" />
-            <RecentPurchases v-show="currentItems.length < 1" :mode="currentAccount ? 'account' : 'all'" :id="currentAccount ? currentAccount.id : null" ref="recentPurchases" />
+            <RecentPurchases v-show="currentItems.length < 1" :mode="currentAccount ? 'account' : 'all'"
+                :id="currentAccount ? currentAccount.id : null" ref="recentPurchases" />
         </div>
         <Error v-if="e"></Error>
     </main>
