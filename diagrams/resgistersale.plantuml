@@ -1,0 +1,17 @@
+@startuml resgistersale
+start
+repeat
+    #lime:Skanna EAN;
+repeat while (Fler artiklar att strecka?) is (ja) 
+-> nej;
+if (Användare har konto) then (ja)
+    #lime:Skanna användarens sträckkod;
+    :Registrera sälj som internt;
+else (nej)
+    #lime:???;
+    :Registrera sälj som externt;
+endif
+:Redigera invantarie;
+
+end
+@enduml

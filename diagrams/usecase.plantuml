@@ -1,0 +1,60 @@
+@startuml usecase
+actor Admin as admin
+actor User as user
+actor Guest as guest
+
+package "Dagligt bruk" {
+    (Strecka artikel) as (streck)
+        user --> streck
+
+    (Se artiklar) as (se)
+        user --> se
+
+    (Visa lagerstatus) as (lager)
+        admin --> lager
+        user --> lager
+        guest --> lager
+
+    (Visa egen skuld) as (skuld)
+        user --> skuld
+
+    (Registrera sälj) as (sälj)
+        user --> sälj
+        guest --> sälj
+
+    (Sätta in pengar) as (insättning)
+        user --> insättning
+
+    (Omedelbar betalning) as (betalning)
+        guest --> betalning
+}
+
+package "Redigering och administration" {
+    (Redigera artiklar) as (redigera)
+        admin --> redigera
+
+    (Analysera försäljning) as (analys)
+        admin --> analys
+
+    (Visa statistik) as (statistik)
+        admin --> statistik
+
+    (Redigera användare) as (registrera)
+        admin --> registrera
+
+    (Regigera Lagerstatus) as (redigeraLager)
+        admin --> redigeraLager
+
+    (Justera skuld) as (justera)
+        admin --> justera
+}
+
+
+
+
+
+
+
+
+
+@enduml
