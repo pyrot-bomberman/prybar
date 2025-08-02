@@ -1,6 +1,7 @@
 <script setup>
     import { ref, onMounted } from 'vue'
     import api from '@/api'
+    import CreateNewAccount from '@/components/CreateNewAccount.vue';
 
     const accounts = ref([]);
 
@@ -41,6 +42,7 @@
                     </tr>
                 </tbody>
             </table>
+            <CreateNewAccount />
         </div>
     </div>
 </template>
